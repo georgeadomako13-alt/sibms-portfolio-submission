@@ -1,9 +1,10 @@
 DE Individual Portfolio Submission
+
 Student Name: Osei George Adomako
 Student ID: 22242241
 Sakai Group: DE-SEGP-13
 Feature Documented: Record a Sale (POST /api/v1/sales)
-Personal Repository URL: github.com
+Personal Repository URL: https://github.com/georgeadomako13-alt/sibms-portfolio-submission
 Final Evidence Commit SHA: 46107bb73fc25bf0494e716556530054cd669b5b
 
 UNIVERSITY OF GHANA | DEPARTMENT OF COMPUTER SCIENCE
@@ -14,12 +15,14 @@ Project Title: SIBMS - Sales, Inventory and Bookkeeping Management System
 Client: Centric Systems Limited
 GitHub Username: georgeadomako13-alt
 Primary Project Role: Architecture / Context Lead
+
 AI Statement:
 I used AI assistance (Claude) to draft first-pass boilerplate structures and baseline table alignments from our project briefs. Every conceptual map, architectural rule, interview dataset, tracking workflow, and specific system response detailed below has been manually updated, reviewed, and verified to align directly with our team repository and my distinct engineering work. I stand fully prepared to explain and defend every design decision, state transition, and code implementation step outlined in this document.
-Privacy Note: This document uses synthetic product codes, simulated configurations, and placeholder parameters to protect confidential client operations.
+
+Privacy Note:
+This document uses synthetic product codes, simulated configurations, and placeholder parameters to protect confidential client operations.
 
 IA01 | Personal System Request-Flow Diagram
-
 
 Feature Wording & Implementation Status
 
@@ -28,18 +31,19 @@ Feature Wording & Implementation Status
 
 Typed Explanation (The Twelve Questions)
 
-1. User Device: Shop attendant working at the counter using a desktop PC or laptop. Attendants use individual authentication profiles to ensure complete auditing. If terminal power fails mid-sale, any active browser cart memory is cleared safely; no partial transaction is sent to the backend.
-2. Browser or Mobile App: A web application accessed via modern browsers (Chrome/Edge). Avoids terminal-side application maintenance or platform packaging overhead. Interfaces are designed for immediate keyboard-driven access to minimize customer counter wait times.
+1. User Device: A shop attendant working at the counter using a desktop PC or laptop. Attendants use individual authentication profiles to ensure complete auditing. If terminal power fails mid-sale, any active browser cart memory is cleared safely; no partial transaction is sent to the backend.
+2. Browser or Mobile App: A web application accessed via modern browsers (Chrome/Edge). It avoids terminal-side application maintenance or platform packaging overhead. Interfaces are designed for immediate keyboard-driven access to minimize customer counter wait times.
 3. URL, Route, Screen, Endpoint: Attendants operate on the browser route /sales/new. Confirming the sales order issues a POST /api/v1/sales payload to the backend API. Component lists are populated via a GET /api/v1/products request. Access control is validated directly at the backend API endpoint level, ensuring UI path manipulation cannot bypass authorization checks.
-4. Protocol: Transport Layer Security handles the connection via HTTPS. The client browser resolves the system domain name using DNS to extract the targeted server IP, setting up a secure, encrypted tunnel. This explicitly blocks any local network sniffing from capturing live authentication bearer tokens or transaction details.
-5. Data Sent: A JSON payload containing an optional customer_id (omitted for walk-in cash orders), an explicit payment_method, and an array of items containing precise product_id and integer quantity keys. Request headers carry the user's Authorization: Bearer <token> and a unique Idempotency-Key. Product pricing details are excluded from the user payload to prevent client-side data tampering; the API engine pulls prices directly from our data layer.
+4. Protocol: Transport Layer Security handles the connection via HTTPS. The client browser resolves the system domain name using DNS to extract the targeted server IP, setting up a secure, encrypted tunnel. This blocks local network sniffing from capturing live authentication bearer tokens or transaction details.
+5. Data Sent: A JSON payload containing an optional customer_id (omitted for walk-in cash orders), an explicit payment_method, and an array of items containing precise product_id and integer quantity keys. Request headers carry the user's Authorization: Bearer <token> and a unique Idempotency-Key. Product pricing details are excluded from the user payload to prevent client-side tampering; the API engine pulls prices directly from the data layer.
 6. Request Validation: The browser frontend validates that order items are non-empty and quantities contain positive integers before transmission. The server API enforces strict type validation, checks token expiration status, verifies the authorized user role, validates product item flags, and confirms database stock balances before initiating structural changes.
-7. Database or External Service: Relational database storage. The transaction executes atomic writes across five explicit structures: sales, sale_items, stock_movements, and ledger_entries, while updating the core products table. The system records the unique request tracking string in the database to block duplicate processing directly via database constraints.
+7. Database or External Service: Relational database storage. The transaction executes atomic writes across five explicit structures: sales, sale_items, stock_movements, ledger_entries, and the core products table. The system records the unique request tracking string in the database to block duplicate processing directly via database constraints.
 8. Returned Response: The system returns an HTTP 201 Created status code containing a structured JSON response body that details the generated sale_id, human-readable receipt_no, overall transaction total, and timestamp. The interface flushes the active counter cart, updates dashboard inventory panels, and loads a print-ready counter receipt layout.
 9. Validation Failure: The server returns an HTTP 4xx error code (such as 409 INSUFFICIENT_STOCK) alongside a clean message identifying the conflicting product line items. No database changes occur, and the interface highlights the exact line error so the attendant can adjust quantities without losing other cart data.
-10. Database Outage: If the API layer cannot establish a stable database connection or if the transaction fails to complete, it returns an HTTP 503 SERVICE_UNAVAILABLE status code. No partial fragments are saved. The frontend cart data remains safely in browser memory, and retrying is secure due to the unique idempotency value. Attendants can switch to paper tracking sheets during downtime per business continuity runbooks.
+10. Database Outage: If the API layer cannot establish a stable database connection or if the transaction fails to complete, it returns an HTTP 503 SERVICE_UNAVAILABLE status code. No partial fragments are saved. The frontend cart data remains safely in browser memory, and retrying is secure due to the unique idempotency key. Attendants can switch to paper tracking sheets during downtime per business continuity runbooks.
 11. 500 Concurrent Users: Exceeds standard local counter traffic footprints. To support scaling, the architecture uses a load balancer distributing traffic over isolated stateless server containers, implements strict database connection pooling, indexes foreign key rows, caches static catalog rows, and applies row-level write locks to prevent duplicate product unit assignment.
-12. Security and Privacy Concern: Principal threats involve pricing/stock data tampering, injection exploits, and unauthorized access to customer account data. Mitigations include strict HTTPS enforcement, server-side price evaluation, parameterized queries, short-lived access tokens, and zero logging of private credentials or personal phone fields.
+12. Security and Privacy Concern: Principal threats involve pricing and stock tampering, injection exploits, and unauthorized access to customer account data. Mitigations include strict HTTPS enforcement, server-side price evaluation, parameterized queries, short-lived access tokens, and zero logging of private credentials or personal phone fields.
+
 • Selected Failure Point: Database outage during the sale transaction.
 • Selected Security Concern: Unauthorized price modification via parameter tampering.
 • Further Learning Goal: Practical benchmarking of row-level lock behavior (SELECT ... FOR UPDATE) under highly concurrent write conditions.
@@ -58,7 +62,6 @@ Traceability and Authorship
 
 IA02 | Client Interview Evidence and Requirement Transformation Memo
 
-
 Personal Question Set (Prepared Pre-Interview)
 
 1. Workflow: Walk me through what happens from the moment a customer asks for a product to the moment they leave.
@@ -69,7 +72,7 @@ Personal Question Set (Prepared Pre-Interview)
 6. Data: How are prices set, and who may change them?
 7. Success Criteria: How will you know the new system is working well for you?
 8. Success Criteria: How quickly must a sale be recorded at the counter?
-9. Security/Privacy: Who should see cost prices, profit and customer phone numbers?
+9. Security/Privacy: Who should see cost prices, profit, and customer phone numbers?
 10. Failures/Exceptions: What happens when an item is out of stock, or power or internet fails mid-sale?
 11. Failures/Exceptions: How are returns and wrongly recorded sales handled?
 
@@ -99,7 +102,7 @@ Requirement Transformation
 
 Reflection
 
-The client interview completely shifted our engineering focus from UI design to data layer integrity. We initially assumed that basic application check logic would prevent incorrect stock adjustments. However, discussing realistic multi-user counter bottlenecks made it clear that concurrent actions can bypass frontend restrictions. This realization highlights the need for strict database transactions and row locking (SELECT ... FOR UPDATE) to handle inventory safely at the database layer.
+The client interview completely shifted our engineering focus from UI design to data layer integrity. We initially assumed that basic application logic would prevent incorrect stock adjustments. However, discussing realistic multi-user counter bottlenecks made it clear that concurrent actions can bypass frontend restrictions. This realization highlights the need for strict database transactions and row locking (SELECT ... FOR UPDATE) to handle inventory safely at the database layer.
 
 Team Evidence and Traceability
 
@@ -110,7 +113,6 @@ Team Evidence and Traceability
 • AI Disclosure: Structural formatting generated via Claude. Actual user logs and specific text reflections are completely my own work.
 
 IA03 | Use-Case-to-Story Traceability Card
-
 
 Traceability Card Dataset
 
@@ -131,9 +133,9 @@ Traceability Card Dataset
 	4. Server applies a transactional database lock, validates stock levels, inserts tracking rows, decrements inventory tables, and updates bookkeeping subledgers.
 	5. UI receives a success payload and loads the receipt view.
 • Alternate Flow:
-	• 4a. Order includes a registered B2B customer profile: System switches database calculations to use approved bulk discount tiers instead of retail rates.
+	• 4a. Order includes a registered B2B customer profile: The system switches database calculations to use approved bulk discount tiers instead of retail rates.
 • Exception / Failure Flow:
-	• 4a. Stock Conflict: System intercepts a line item exceeding available balances, cancels the transaction, and drops all database steps.
+	• 4a. Stock Conflict: The system intercepts a line item exceeding available balances, cancels the transaction, and drops all database steps.
 	• 4b. Database Unavailable: Connection failure triggers an API exception, returning an HTTP 503 error while keeping browser cart states intact.
 • Postconditions: On success, all financial data rows are correctly generated, inventory tables accurately reflect unit changes, and subledgers remain balanced.
 
@@ -160,7 +162,7 @@ Request-Flow Reasoning Dataset
 • Actor Interface: Single-screen counter browser panel connecting via POST /api/v1/sales.
 • Payload Struct: Target product lines array, selected payment method identifier, authentication bearer string, and unique tracking hash.
 • Data Tier Target: Encompasses atomic updates across sales, sale_items, stock_movements, ledger_entries, and products records.
-• Conflict Interception: Handled via custom database check expressions and isolated API verification code blocks.
+• Conflict Interception: Handled via custom database-check expressions and isolated API verification code blocks.
 
 Integrity Declaration & Sign-off
 
@@ -168,7 +170,6 @@ I completely understand the use case logic, user stories, acceptance validation 
 Signed (Typed): Osei George Adomako, 23 October 2026.
 
 IA04 | Architecture Decision Record and Failure Walkthrough
-
 
 ADR-001 Identification Matrix
 
@@ -187,7 +188,7 @@ Data Consistency	5	5	3	Atomic transactions prevent partial writes across tables.
 Schema Mapping	4	5	3	Order files, line items, and product lists fit structural tables.
 Access Protections	3	4	3	Mature, native database-level permissions and access controls.
 Team Capabilities	4	4	3	Align directly with our current SQL and database experience.
-Deployment Costs	3	4	4	low-cost engine options are readily available on Vercel.
+Deployment Costs	3	4	4	Low-cost engine options are readily available on Vercel.
 Weighted Total	—	105	80	Option A chosen due to strong transactional data guarantees.
 
 • Design Benefits: Strict data integrity via foreign keys, atomic database commits, and structural constraints that prevent negative inventory values.
@@ -200,8 +201,7 @@ Failure Walkthrough (Database Down Scenario)
 1. Normal Execution: The counter attendant clicks complete order → API schema check completes → Database transaction saves order rows and reduces stock counters → Returns success code 201.
 2. Component Failure: The database connection drops or a lock timeout blocks the transaction midway.
 3. System Interception: The API layer catches the database exception, halts the request pipeline, updates application health logs, and returns an HTTP 503 error status.
-4. 
-	• Attendant Experience:* UI displays a clean message: "Sale could not be saved. Please try again." The current cart items remain safely in browser memory.
+4. Attendant Experience: The UI displays a clean message: "Sale could not be saved. Please try again." The current cart items remain safely in browser memory.
 5. Data State: All partial updates are rolled back; database files remain clean and consistent.
 6. Remediation Path: Attendants can safely resubmit the request; if the outage persists, they follow backup paper procedures until the database service recovers.
 
@@ -211,7 +211,6 @@ Verification Plan
 • Concurrency Checks: Simultaneous simulated payloads check that duplicate entries containing the same tracking hash are blocked automatically.
 
 IA05 | API Contract and Failure-Response Walkthrough
-
 
 Contract Definition
 
@@ -296,7 +295,6 @@ Use code with caution.
 
 IA06 | Data Model, Query and State Walkthrough
 
-
 Relational Entities & Attributes Structure
 
 1. users: id (PK) | username (Unique) | role | password_hash
@@ -332,7 +330,7 @@ WHERE id IN ('prd_1001', 'prd_1002')
 FOR UPDATE;
 
 -- [Application logic validates that stock_qty >= requested volumes]
--- If validation fails, system calls ROLLBACK immediately and returns HTTP 409
+-- If validation fails, the system calls ROLLBACK immediately and returns HTTP 409
 
 -- 2. Generate the base sales tracking row
 INSERT INTO sales (id, receipt_no, user_id, customer_id, payment_method, total, status, idempotency_key, created_at)
@@ -360,7 +358,6 @@ Use code with caution.
 
 IA07 | Test Evidence, PR Review and CI Walkthrough
 
-
 Test Suite Plan Matrix
 
 All core features require automated validation scripts within the project pipeline.
@@ -368,23 +365,23 @@ All core features require automated validation scripts within the project pipeli
 Test Target	Input Data Mix	Target Response Status	Intended Verification Result
 1. Standard Order	Valid rows, active token, unique hash key.	201 Created	Order saves successfully, stock drops, subledgers balance.
 2. Zero Quantity	Target cart item quantity set to 0.	400 Bad Request	Fails schema validation checks; no database changes.
-3. Inventory Deficit	Requesting 10 units when stock is exactly 2.	409 Conflict	Blocked by stock validation check; database is unchanged.
+3. Inventory Deficit	Requesting 10 units when stock is exactly 2.	409 Conflict	Blocked by stock validation check; database remains unchanged.
 4. Missing Token	Valid data payload sent without token header.	401 Unauthorized	Rejected at API routing level; database access blocked.
-5. Bad Role permissions	Admin role token attempting to log sales.	403 Forbidden	Blocked by role-based access rules; action logged.
+5. Bad Role Permissions	Admin role token attempting to log sales.	403 Forbidden	Blocked by role-based access rules; action logged.
 6. Duplicate Request	Resending an identical idempotency key hash.	201 Created	Returns the initial invoice without duplicate stock reduction.
-
 
 PR Quality Assurance Review Checklist
 
-• Functional Alignment: Does the code changes directly implement FR-SALE-01 and satisfy acceptance criteria AC1-AC4?
+• Functional Alignment: Does the change directly implement FR-SALE-01 and satisfy acceptance criteria AC1-AC4?
 • Validation Coverage: Are input constraints enforced on the backend layer using stable exception error models?
-• Data Layer Safety: Does the process group data engine operations into a single atomic transaction block?
+• Data Layer Safety: Does the process group database operations into a single atomic transaction block?
 • Security Hygiene: Are query execution steps parameterized to block SQL injection attacks?
-• Secret Handling: Are credential definitions isolated from repository code and handled via environment configurations?
+• Secret Handling: Are credentials isolated from repository code and managed through environment configurations?
 
 Continuous Integration Design
 
 The workflow enforces automated compilation checks via GitHub Actions on every inbound pull request:
+
 bash
 make setup     # Installs isolated development dependencies
 make lint      # Enforces strict style guidelines and code checks
@@ -393,14 +390,13 @@ Use code with caution.
 
 IA08 | Deployment Readiness, Release Evidence and Rollback Walkthrough
 
-
 Secret Management and Environment Blueprint
 
 Confidential configuration keys use target platform environment managers and are completely excluded from code files.
 • DATABASE_URL → Active database connection path string (postgres://USER:PASSWORD@HOST/DB).
 • JWT_SECRET → Cryptographic key used to verify user signature tokens.
 • APP_ENV → Specifies target environment contexts (production, staging).
-• CORS_ORIGIN → restrains authorized UI interface access paths (https://ug.edu.gh).
+• CORS_ORIGIN → Restrains authorized UI interface access paths (https://ug.edu.gh).
 
 Post-Deployment Verification (Smoke Testing)
 
@@ -411,14 +407,13 @@ Post-Deployment Verification (Smoke Testing)
 
 Rollback Remediation Workflow
 
-• Triggering Event: App logs reveal unexpected HTTP 500 failures or server connection drops straight after a production release.
+• Triggering Event: App logs reveal unexpected HTTP 500 failures or server connection drops immediately after a production release.
 • Remediation Plan:
-	1. Immediately redirect production container routing to point to the last stable deployment tag in our system logs.
-	2. Execute database down-migration scripts (make migrate-down) to revert schema changes cleanly without disrupting existing data records.
+	1. Immediately redirect production container routing to point to the last stable deployment tag in the system logs.
+	2. Execute database down-migration scripts (make migrate-down) to revert schema changes cleanly without disrupting existing data.
 	3. Run the automated smoke test suite against the restored container stack to verify application recovery.
 
 IA09 | Security, Privacy and Maintainability Review
-
 
 Strict System Access Matrix
 
@@ -432,13 +427,11 @@ Approve Staff Profiles	No	Yes	No
 System Account Configuration	No	No	Yes
 Void Active Sales Row	No	Yes (via reverse entry)	No
 
-
 Privilege Abuse Mitigation
 
-To block malicious insider actions (such as an attendant deleting transactions after taking cash), the data model blocks hard row deletes. Transaction records are completely immutable. Correcting an entry error requires generating a manager-approved reversing transaction row, preserving a full history for audit reviews.
+To block malicious insider actions (such as an attendant deleting transactions after taking cash), the data model blocks hard row deletes. Transaction records are completely immutable. Correcting an entry error requires generating a manager-approved reversing transaction row, preserving a full history for audit review.
 
 IA10 | Final Individual System Defence and Contribution Evidence
-
 
 Engineering Domain Focus
 
@@ -472,7 +465,7 @@ This confidential assessment details team contributions and performance dynamics
 	• Operational Reliability: High. Maintained consistent project pacing and ensured team updates were systematically managed.
 	• Technical Capabilities: Strong analytical and product management skills. Effectively structured our core user story backlogs.
 • EZEKIEL BOGLO (QA / Validation Lead)
-	• Contribution Review: Designed our test coverage plans and validated edge-case exceptions for multi-item cart submissions. Ensure the system reliably catches invalid quantities before they hit the database.
+	• Contribution Review: Designed our test coverage plans and validated edge-case exceptions for multi-item cart submissions. Ensured the system reliably catches invalid quantities before they hit the database.
 	• Operational Reliability: Highly consistent attendance across all planned synchronization sessions.
 	• Technical Capabilities: Strong quality assurance focus. Effectively identified and addressed data validation flaws during design reviews.
 • ELLEN ARTHUR (DevOps / Release Lead)
@@ -481,11 +474,11 @@ This confidential assessment details team contributions and performance dynamics
 	• Technical Capabilities: Good control of automated tooling workflows and release version tracking protocols.
 • DENNIS AYENSU MENSAH (UX / Research Lead)
 	• Contribution Review: Designed the single-screen browser wireframes and keyboard navigation mapping to optimize speed at the counter terminal.
-	• Operational Reliability: Dependable. Delivered user interface assets ahead of our scheduled integration targets.
+	• Operational Reliability: Dependable. Delivered user interface assets ahead of scheduled integration targets.
 	• Technical Capabilities: Strong user experience focus. Specialized in designing highly responsive views for varying terminal sizes.
 • AKORTA JOEL (Implementation Lead - Frontend)
 	• Contribution Review: Implemented interactive browser cart cards and managed team meeting documentation files.
-	• Operational Reliability: Active developer. Maintained high participation across our weekly review syncs.
+	• Operational Reliability: Active developer. Maintained high participation across weekly review syncs.
 	• Technical Capabilities: Good front-end development skills, with solid implementation of component layouts.
 • ADUFUL JONATHAN GYAN (Implementation Lead - Backend)
 	• Contribution Review: Built the primary backend API endpoint controllers and database transaction processing structures.
